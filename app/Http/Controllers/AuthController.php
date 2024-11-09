@@ -11,7 +11,7 @@ class AuthController extends Controller
 {
     public function redirectToProvider($provider)
     {
-        return Socialite::driver($provider)->redirect();
+        return Socialite::driver($provider)->stateless()->redirect();
     }
 
     public function handleProviderCallback($provider)
@@ -26,14 +26,16 @@ class AuthController extends Controller
                 'name' => $user->getName(),
                 'avatar' => $user->getAvatar(),
                 'provider' => $provider,
-                'provider_id' => $user->getId()
+                'provider_id' => $user->getId(),
+                'token' => $user->token,
+                'refreshToken' => $user->refreshToken,
             ]);
 
             Auth::login($authUser);
 
-            return redirect()->to('/dashboard');
+            return redirect()->to('/');
         } catch (\Exception $exception) {
-            return redirect('/login')->with('error', 'Login unsuccessful');
+            \Log::error("Google login error: " . $exception->getMessage());
         }
 
     }
