@@ -1,24 +1,24 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use App\Http\Resources\UserResource;
+use App\Http\Controllers\GoogleDriveController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserFolderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\FolderController;
 
-Route::get('/user', function () {
-    return UserResource::collection(User::all());
+Route::get('/google/redirect', [AuthController::class, 'redirectToProvider']);
+
+Route::get('/google/callback', [AuthController::class, 'handleProviderCallback']);
+
+Route::get('/user', [AuthController::class, 'getUserName']);
+
+Route::get('/folders/{parentFolderId?}', [GoogleDriveController::class, 'listAllFolders']);
+
+Route::middleware(['auth:api', 'admin'])->group(function() {
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::post('/users/{user}/folders', [UserFolderController::class, 'store']);
+    Route::delete('/users/{user}/folders/{folder}', [UserFolderController::class, 'destroy']);
 });
 
-Route::get('/auth/{provider}', [AuthController::class, 'redirectToProvider']);
-
-Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback']);
-
-Route::middleware(['auth:api', 'role:admin'])->group(function () {
-    Route::post('/folders/{folderId}/add-user', [FolderController::class, 'addUser'])->name('folders.addUser');
-});
-
-Route::middleware(['auth:api', 'role:user'])->group(function () {
-    Route::get('/folders/{folderId}', [FolderController::class, 'viewFolder'])->name('folders.viewFolder');
-});
+Route::post('/logout', [AuthController::class, 'logout']);
