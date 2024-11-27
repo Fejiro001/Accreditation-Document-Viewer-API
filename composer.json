@@ -9,13 +9,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "google/apiclient": "^2.18",
+        "google/apiclient": "2.15.0",
         "laravel/framework": "^11.9",
         "laravel/passport": "^12.0",
         "laravel/socialite": "^5.16",
         "laravel/tinker": "^2.9",
-        "socialiteproviders/microsoft": "^4.5",
-        "spatie/laravel-permission": "^6.10"
+        "socialiteproviders/microsoft": "^4.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -63,10 +62,7 @@
     "extra": {
         "laravel": {
             "dont-discover": []
-        },
-        "google/apiclient-services": [
-            "Drive"
-        ]
+        }
     },
     "config": {
         "optimize-autoloader": true,
