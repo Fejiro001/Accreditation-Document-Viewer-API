@@ -35,16 +35,9 @@ return [
         ],
     ],
 
-    'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI'),
-        'scopes' => [
-            Google\Service\Drive::DRIVE_READONLY,
-            Google\Service\Drive::DRIVE_METADATA_READONLY,
-            Google\Service\Oauth2::OPENID,
-            Google\Service\Oauth2::USERINFO_PROFILE,
-            Google\Service\Oauth2::USERINFO_EMAIL,
-        ]
+    'google_drive' => [
+        'service_account_path' => env('GOOGLE_SERVICE_ACCOUNT_PATH', storage_path('app/google-service-account.json')),
+        'application_name' => env('GOOGLE_APPLICATION_NAME', 'Accreditation Document Viewer'),
+        'default_folder_id' => env('GOOGLE_DEFAULT_FOLDER_ID', '1oOdXdyN1-_1HRGndMvphkz1M-NeIITyd')
     ],
 ];
