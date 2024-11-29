@@ -1,24 +1,31 @@
 <?php
 
-use App\Http\Controllers\GoogleDriveController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserFolderController;
+use App\Http\Controllers\{
+    GoogleDriveController,
+    UserController,
+    UserFolderController,
+    AuthController
+};
+use App\Http\Middleware\AddTokenFromCookie;
+use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 
-Route::get('/google/redirect', [AuthController::class, 'redirectToProvider']);
+// Public routes
+Route::get('/login', [AuthController::class, 'redirectToProvider']);
 
+// Google OAuth callback
 Route::get('/google/callback', [AuthController::class, 'handleProviderCallback']);
 
-Route::get('/user', [AuthController::class, 'getUserName']);
+// Authenticated user routes
+Route::middleware([AddTokenFromCookie::class, 'auth:api'])->group(function () {
+    Route::get('/user', [AuthController::class, 'getUserName']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/folders/{parentFolderId?}', [GoogleDriveController::class, 'listAllFolders']);
+});
 
-Route::get('/folders/{parentFolderId?}', [GoogleDriveController::class, 'listAllFolders']);
-
-Route::middleware(['auth:api', 'admin'])->group(function() {
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'store']);
+// Admin routes
+Route::middleware([AddTokenFromCookie::class, 'auth:api', AdminMiddleware::class])->group(function () {
+    Route::apiResource('users', UserController::class)->only(['index', 'store']);
     Route::post('/users/{user}/folders', [UserFolderController::class, 'store']);
     Route::delete('/users/{user}/folders/{folder}', [UserFolderController::class, 'destroy']);
 });
-
-Route::post('/logout', [AuthController::class, 'logout']);
