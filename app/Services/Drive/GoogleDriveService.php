@@ -101,7 +101,7 @@ class GoogleDriveService implements DriveServiceInterface
         $baseViewUrl = "https://drive.google.com/file/d/{$fileId}/view";
 
         $viewerMapping = [
-            'application/pdf' => "https://docs.google.com/viewer?url=https://drive.google.com/uc?id={$fileId}",
+            'application/pdf' => "https://docs.google.com/viewer?url=https://drive.google.com/uc?id={$fileId}&export=download",
             'application/vnd.google-apps.document' => "https://docs.google.com/document/d/{$fileId}/view",
             'application/vnd.google-apps.spreadsheet' => "https://docs.google.com/spreadsheets/d/{$fileId}/view",
             'application/vnd.google-apps.presentation' => "https://docs.google.com/presentation/d/{$fileId}/view",
