@@ -9,12 +9,12 @@ use Laravel\Socialite\Facades\Socialite;
 class AuthController extends Controller
 {
     private const PROVIDER = 'google';
-    private const TOKEN_NAME = 'Google';
 
     public function redirectToProvider()
     {
         return Socialite::driver(self::PROVIDER)
-            ->scopes(['openid', 'profile', 'email'])->with(['access_type' => 'offline'])
+            ->scopes(['openid', 'profile', 'email'])
+            ->with(['access_type' => 'offline', 'prompt' => 'consent'])
             ->stateless()
             ->redirect();
     }
@@ -24,54 +24,78 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver(self::PROVIDER)->stateless()->user();
 
-            \Log::info('Google User:', (array) $googleUser);
-
-            $user = User::updateOrCreate([
-                'provider' => self::PROVIDER,
-                'email' => $googleUser->getEmail(),
-                'provider_id' => $googleUser->getId(),
-            ], [
-                'name' => $googleUser->getName(),
-                'token' => $googleUser->token,
-                'refresh_token' => $googleUser->refreshToken,
-            ]);
+            $user = User::updateOrCreate(
+                [
+                    'provider' => self::PROVIDER,
+                    'email' => $googleUser->getEmail(),
+                    'provider_id' => $googleUser->getId(),
+                ],
+                [
+                    'name' => $googleUser->getName(),
+                    'token' => $googleUser->token,
+                    'refresh_token' => $googleUser->refreshToken,
+                ]
+            );
 
             Auth::login($user, true);
 
+            // Generate API token
             $token = $user->createToken('authToken')->accessToken;
 
-            \Log::info('Generated token: ' . $token);
+            // Create a secure cookie with the token
+            $cookie = cookie(
+                'authToken',
+                $token,
+                60 * 24,
+                '/',
+                null,
+                true,
+                true,
+                false,
+                'Strict'
+            );
 
-            $cookie = cookie('authToken', $token, 60 * 24, null, 'localhost', false, true, false, 'None');
-
-            return redirect('http://localhost:5173')->withCookie($cookie);
+            return redirect(config('app.frontend_url'))
+                ->withCookie($cookie);
         } catch (\Exception $e) {
             \Log::error('Google login failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to login with Google.'], 400);
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
     }
 
     public function getUserName()
     {
-        $user = Auth::user();
-        \Log::info("User info: " . json_encode($user)); 
-        return response()->json([
-            'name' => $user->name,
-        ]);
+        try {
+            $user = Auth::guard('api')->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            return response()->json([
+                'name' => $user->name,
+                'email' => $user->email,
+                'status' => 'success'
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error("Unauthorized access" . $e->getMessage());
+            return response()->json(['error' => 'Failed fetch user data.'], 400);
+        }
     }
 
     public function logout()
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::guard('api')->user();
+            if ($user) {
+                $user->token()->revoke();
+                Auth::guard('web')->logout();
 
-        if ($user) {
-            $user->token()->revoke();
-            Auth::logout();
-
-            return response()->json(['message' => 'Successfully logged out']);
-
+                return response()->json(['message' => 'Successfully logged out']);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Logout failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to logout.'], 400);
         }
-
-        return response()->json(['message' => 'No user logged in'], 400);
     }
 }
