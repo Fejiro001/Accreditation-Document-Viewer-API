@@ -26,6 +26,10 @@ class GoogleDriveController extends Controller
      */
     public function listAllFolders(?string $parentFolderId = null, int $depth = 2): JsonResponse
     {
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         try {
 
             $parentFolderId ??= $this->config->getDefaultFolderId();
