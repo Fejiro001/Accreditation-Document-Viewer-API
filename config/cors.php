@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173'], //allow frontend URL
+    'allowed_origins' => ['http://127.0.0.1:3000'], //allow frontend URL
 
     'allowed_origins_patterns' => [],
 
