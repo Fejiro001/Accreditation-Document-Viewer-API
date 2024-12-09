@@ -15,9 +15,9 @@ class GoogleDriveServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(GoogleDriveConfig::class, fn() => new GoogleDriveConfig(
-            serviceAccountPath: config('services.google_drive.service_account_path', storage_path('app/google-service-account.json')),
-            applicationName: config('services.google_drive.application_name', 'Accreditation Document Viewer'),
-            defaultFolderId: config('services.google_drive.default_folder_id', '1oOdXdyN1-_1HRGndMvphkz1M-NeIITyd')
+            serviceAccountPath: config('services.google_drive.service_account_path'),
+            applicationName: config('services.google_drive.application_name'),
+            defaultFolderId: config('services.google_drive.default_folder_id')
         ));
 
         $this->app->bind(DriveServiceInterface::class, GoogleDriveService::class);
