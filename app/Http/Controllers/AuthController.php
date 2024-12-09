@@ -14,7 +14,7 @@ class AuthController extends Controller
     {
         return Socialite::driver(self::PROVIDER)
             ->scopes(['openid', 'profile', 'email'])
-            ->with(['access_type' => 'offline', 'prompt' => 'consent'])
+            ->with(['access_type' => 'offline'])
             ->stateless()
             ->redirect();
     }
@@ -26,11 +26,11 @@ class AuthController extends Controller
 
             $user = User::updateOrCreate(
                 [
-                    'provider' => self::PROVIDER,
                     'email' => $googleUser->getEmail(),
-                    'provider_id' => $googleUser->getId(),
                 ],
                 [
+                    'provider' => self::PROVIDER,
+                    'provider_id' => $googleUser->getId(),
                     'name' => $googleUser->getName(),
                     'token' => $googleUser->token,
                     'refresh_token' => $googleUser->refreshToken,
@@ -63,7 +63,7 @@ class AuthController extends Controller
         }
     }
 
-    public function getUserName()
+    public function getUserInfo()
     {
         try {
             $user = Auth::guard('api')->user();
@@ -72,10 +72,19 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
+            $displayName = $user->name ?? explode('@', $user->email)[0];
+
             return response()->json([
-                'name' => $user->name,
+                'name' => $displayName,
                 'email' => $user->email,
-                'status' => 'success'
+                'role' => $user->role,
+                'status' => 'success',
+                'permissions' => $user->folders->map(function ($folder) {
+                    return [
+                        'folderId' => $folder->google_drive_id,
+                        'hasAccess' => $folder->pivot->has_access
+                    ];
+                })
             ], 200);
         } catch (\Exception $e) {
             \Log::error("Unauthorized access" . $e->getMessage());
