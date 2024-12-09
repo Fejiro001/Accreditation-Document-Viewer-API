@@ -16,7 +16,7 @@ class GoogleDriveController extends Controller
         private readonly GoogleDriveConfig $config
     ) {
     }
-    
+
     /**
      * Lists all folders from Google Drive starting from a specified parent folder.
      *
@@ -35,8 +35,8 @@ class GoogleDriveController extends Controller
             $parentFolderId ??= $this->config->getDefaultFolderId();
 
             $folderList = Cache::remember(
-                "folders_{$parentFolderId}_depth($depth}",
-                now()->addMinutes(10),
+                "folders_{$parentFolderId}_depth{$depth}",
+                now()->addMinutes(30),
                 fn() => $this->driveService->listFolders($parentFolderId, $depth)
             );
 
