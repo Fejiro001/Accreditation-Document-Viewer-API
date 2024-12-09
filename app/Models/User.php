@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
         'provider',
         'provider_id',
@@ -53,6 +54,6 @@ class User extends Authenticatable
 
     public function folders()
     {
-        return $this->belongsToMany(Folder::class, 'folder_user', 'user_id', 'folder_id');
+        return $this->belongsToMany(Folder::class, 'folder_user', 'user_id', 'folder_id')->withPivot('has_access');
     }
 }
