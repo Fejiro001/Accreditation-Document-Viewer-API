@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
+            $table->string('role')->default('user');
             $table->string('password')->nullable();
             $table->string('provider')->nullable();
             $table->string('provider_id')->nullable();
